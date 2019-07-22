@@ -11,8 +11,17 @@ namespace Megaminx {
       // Initialise the array of facets with the given char
       Face(char c);
 
+      // Return the 'colour' of the face
+      char colour() const;
+
       // Return the string representation of this face
       std::string str() const;
+
+      // Return a facet 0 <= i < 10
+      char facet(int i) const;
+
+      // Set a facet of the face 0 <= i < 10
+      void set_facet(int i, char c);
 
       // Connect another face
       void connect(std::shared_ptr<Face> face, int edge);
@@ -47,6 +56,9 @@ namespace Megaminx {
 
     protected:
     private:
+      // The colour of this face
+      char m_colour;
+
       // The array that holds the facets
       std::array<char,10> m_facets;
 
