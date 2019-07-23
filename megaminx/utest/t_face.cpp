@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "face.h"
+#include <memory>
 
 TEST(FaceTest,Constructor)
 {
@@ -8,7 +9,7 @@ TEST(FaceTest,Constructor)
   EXPECT_EQ(f.colour(), 'w');
 }
 
-TEST(FaceTest,Facets)
+TEST(FaceTest,facets)
 {
   Megaminx::Face f('w');
   EXPECT_EQ(f.facet(0),'w');
@@ -20,14 +21,39 @@ TEST(FaceTest,Facets)
   EXPECT_EQ(f.str(), "xwwwwwwwwr");
 }
 
+TEST(FaceTest,connect)
+{
+  Megaminx::Face f('w');
+  EXPECT_EQ(f.connected_face(0), nullptr);
+  std::shared_ptr<Megaminx::Face> fptr(new Megaminx::Face('r'));
+  f.connect(0, fptr);
+  ASSERT_NE(f.connected_face(0), nullptr);
+  EXPECT_EQ(f.connected_face(0)->colour(), 'r');
+  // As connected faces stored as weak refs they should release
+  // memory when external memory is released
+  fptr.reset();
+  EXPECT_EQ(fptr, nullptr);
+  EXPECT_EQ(f.connected_face(0), nullptr);
+}
+
 
 //----- Death Tests
-TEST(FaceDeathTest,Facets)
+TEST(FaceDeathTest,facets)
 {
   // Test invalid use cases
   Megaminx::Face f('w');
   EXPECT_DEATH(f.facet(10), "Assertion failed");
   EXPECT_DEATH(f.facet(-1), "Assertion failed");
+}
+
+TEST(FaceDeathTest,connect)
+{
+  Megaminx::Face f('w');
+  std::shared_ptr<Megaminx::Face> fptr(new Megaminx::Face('r'));
+  EXPECT_DEATH(f.connect(10, fptr), "Assertion failed");
+  EXPECT_DEATH(f.connect(-1, fptr), "Assertion failed");
+  f.connect(0,fptr);
+  EXPECT_DEATH(f.connect(0, fptr), "Assertion failed");
 }
 
 

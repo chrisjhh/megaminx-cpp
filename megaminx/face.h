@@ -24,7 +24,10 @@ namespace Megaminx {
       void set_facet(int i, char c);
 
       // Connect another face
-      void connect(std::shared_ptr<Face> face, int edge);
+      void connect(int edge, std::shared_ptr<Face> face);
+
+      // Return the face connected at an edge
+      std::shared_ptr<Face> connected_face(int edge) const;
 
       // Rotate this face clockwise
       void rotate_clockwise();
