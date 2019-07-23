@@ -67,5 +67,8 @@ namespace Megaminx {
 
       // The array of connected faces
       std::array<std::weak_ptr<Face>,5> m_connected_faces;
+
+      // A cache of the string representation
+      mutable std::string m_cached_state;
   };
 }

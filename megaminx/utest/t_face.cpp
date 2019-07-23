@@ -36,6 +36,22 @@ TEST(FaceTest,connect)
   EXPECT_EQ(f.connected_face(0), nullptr);
 }
 
+TEST(FaceTest,rotate)
+{
+  Megaminx::Face f('x');
+  f.set_facet(0,'W');
+  f.set_facet(9,'e');
+  EXPECT_EQ(f.str(),"Wxxxxxxxxe");
+  f.rotate_clockwise();
+  EXPECT_EQ(f.str(),"xeWxxxxxxx");
+  f.rotate_anticlockwise();
+  EXPECT_EQ(f.str(),"Wxxxxxxxxe");
+  f.rotate_anticlockwise();
+  EXPECT_EQ(f.str(),"xxxxxxxeWx");
+  f.rotate_clockwise();
+  EXPECT_EQ(f.str(),"Wxxxxxxxxe");
+}
+
 
 //----- Death Tests
 TEST(FaceDeathTest,facets)

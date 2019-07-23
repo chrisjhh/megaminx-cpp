@@ -13,6 +13,9 @@ namespace Megaminx
   // Return a string representation of the face
   std::string Face::str() const 
   {
+    if (!m_cached_state.empty()) {
+      return m_cached_state;
+    }
     std::string result("");
     result.reserve(10);
     bool different = false;
@@ -28,6 +31,8 @@ namespace Megaminx
       result += m_facets[0];
       result += ']';
     }
+    // Cache result
+    m_cached_state = result;
     return result;
   }
 
@@ -66,6 +71,40 @@ namespace Megaminx
   {
     assert(edge >= 0 && edge < 10);
     return m_connected_faces[edge].lock();
+  }
+
+  // Rotate the face anticlockwise
+  void Face::rotate_anticlockwise()
+  {
+    // Clear the cached state
+    m_cached_state.clear();
+
+    // Grab the top two facets
+    std::array<char,2> top_two;
+    std::copy(m_facets.begin(),m_facets.begin()+2,top_two.begin()); 
+
+    // Shift rest of array up
+    std::copy(m_facets.begin()+2,m_facets.end(),m_facets.begin());
+
+    // Insert top two at bottom
+    std::copy(top_two.begin(),top_two.end(),m_facets.begin() + 8);
+  }
+
+  // Rotate the face clockwise
+  void Face::rotate_clockwise()
+  {
+    // Clear the cached state
+    m_cached_state.clear();
+
+    // Grab the bottom two facets
+    std::array<char,2> bottom_two;
+    std::copy(m_facets.begin()+8,m_facets.end(),bottom_two.begin()); 
+
+    // Shift rest of array down
+    std::copy_backward(m_facets.begin(),m_facets.begin()+8,m_facets.end());
+
+    // Insert bottom two at top
+    std::copy(bottom_two.begin(),bottom_two.end(),m_facets.begin());
   }
 
 
