@@ -40,16 +40,18 @@ TEST(FaceTest,rotate)
 {
   Megaminx::Face f('x');
   f.set_facet(0,'W');
+  f.set_facet(1,'l');
+  f.set_facet(8,'d');
   f.set_facet(9,'e');
-  EXPECT_EQ(f.str(),"Wxxxxxxxxe");
+  EXPECT_EQ(f.str(),"Wlxxxxxxde");
   f.rotate_clockwise();
-  EXPECT_EQ(f.str(),"xeWxxxxxxx");
+  EXPECT_EQ(f.str(),"deWlxxxxxx");
   f.rotate_anticlockwise();
-  EXPECT_EQ(f.str(),"Wxxxxxxxxe");
+  EXPECT_EQ(f.str(),"Wlxxxxxxde");
   f.rotate_anticlockwise();
-  EXPECT_EQ(f.str(),"xxxxxxxeWx");
+  EXPECT_EQ(f.str(),"xxxxxxdeWl");
   f.rotate_clockwise();
-  EXPECT_EQ(f.str(),"Wxxxxxxxxe");
+  EXPECT_EQ(f.str(),"Wlxxxxxxde");
 }
 
 
