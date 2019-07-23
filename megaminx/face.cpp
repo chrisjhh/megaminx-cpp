@@ -50,5 +50,15 @@ namespace Megaminx
     assert(i >= 0 && i < 10);
     m_facets[i] = c;
   }
+
+  // Connect this face to another face
+  // Does not add reverse connection
+  // There must not already be a connected face at this edge
+  void Face::connect(std::shared_ptr<Face> face, int edge)
+  {
+    assert(edge >= 0 && edge < 10);
+    assert(!m_connected_faces[edge].lock());
+    m_connected_faces[edge] = face;
+  }
 }
 
