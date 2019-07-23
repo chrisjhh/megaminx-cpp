@@ -87,7 +87,7 @@ namespace Megaminx
     std::copy(m_facets.begin()+2,m_facets.end(),m_facets.begin());
 
     // Insert top two at bottom
-    std::copy(top_two.begin(),top_two.end(),m_facets.begin() + 8);
+    std::copy(top_two.begin(),top_two.end(),m_facets.end()-2);
   }
 
   // Rotate the face clockwise
@@ -98,10 +98,10 @@ namespace Megaminx
 
     // Grab the bottom two facets
     std::array<char,2> bottom_two;
-    std::copy(m_facets.begin()+8,m_facets.end(),bottom_two.begin()); 
+    std::copy(m_facets.end()-2,m_facets.end(),bottom_two.begin()); 
 
     // Shift rest of array down
-    std::copy_backward(m_facets.begin(),m_facets.begin()+8,m_facets.end());
+    std::copy_backward(m_facets.begin(),m_facets.end()-2,m_facets.end());
 
     // Insert bottom two at top
     std::copy(bottom_two.begin(),bottom_two.end(),m_facets.begin());
