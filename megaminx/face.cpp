@@ -125,6 +125,27 @@ namespace Megaminx
     return facets;
   }
 
+  /**
+   * Set the facets along an edge
+   * @param edge The edge to set 0 -> 4
+   * @param facets The facets to set
+   */
+  void Face::set_edge_facets(int edge, const std::array<char,3>& facets) {
+    assert(edge >= 0 && edge < 5);
+
+    // Clear the cached state
+    m_cached_state.clear();
+
+    int offset = edge * 2;
+    int len = (edge == 4) ? 2 : 3;
+    std::copy(facets.begin(),facets.begin()+len,m_facets.begin()+offset);
+    if (edge == 4) {
+      // Setting last facet on the last edge is actually 
+      // the first facet on the first edge
+      m_facets[0] = facets[2];
+    }
+  }
+
 
 }
 

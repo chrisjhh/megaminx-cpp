@@ -88,6 +88,33 @@ TEST(FaceTest,edge_facets)
   EXPECT_ARRAY_EQ((*e),expected);
 }
 
+TEST(FaceTest,set_edge_facets)
+{
+  Megaminx::Face f('x');
+  char c = 'a';
+  for(int i=0;i<10;++i) {
+    f.set_facet(i,c+i);
+  }
+  EXPECT_EQ(f.str(),"abcdefghij");
+  std::array<char,3> facets = {'1','2','3'};
+  f.set_edge_facets(0,facets);
+  EXPECT_EQ(f.str(),"123defghij");
+  facets = {'4','5','6'};
+  f.set_edge_facets(1,facets);
+  EXPECT_EQ(f.str(),"12456fghij");
+  facets = {'7','8','9'};
+  f.set_edge_facets(2,facets);
+  EXPECT_EQ(f.str(),"1245789hij");
+  facets = {'A','B','C'};
+  f.set_edge_facets(3,facets);
+  EXPECT_EQ(f.str(),"124578ABCj");
+  facets = {'D','E','F'};
+  f.set_edge_facets(4,facets);
+  EXPECT_EQ(f.str(),"F24578ABDE");
+  f.set_edge_facets(0,*f.edge_facets(4));
+  EXPECT_EQ(f.str(),"DEF578ABDE");
+}
+
 
 //----- Death Tests
 TEST(FaceDeathTest,facets)
@@ -113,6 +140,14 @@ TEST(FaceDeathTest,edge_facets)
   Megaminx::Face f('w');
   EXPECT_DEATH(f.edge_facets(5), "Assertion failed");
   EXPECT_DEATH(f.edge_facets(-1), "Assertion failed");
+}
+
+TEST(FaceDeathTest,set_edge_facets)
+{
+  Megaminx::Face f('w');
+  std::array<char,3> facets = {'1','2','3'};
+  EXPECT_DEATH(f.set_edge_facets(5,facets), "Assertion failed");
+  EXPECT_DEATH(f.set_edge_facets(-1,facets), "Assertion failed");
 }
 
 
