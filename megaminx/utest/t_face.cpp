@@ -2,6 +2,15 @@
 #include "face.h"
 #include <memory>
 
+#define EXPECT_ARRAY_EQ(array1,array2) \
+{\
+  EXPECT_EQ(array1.size(),array2.size());\
+  for (int i=0;i<array1.size();++i) {\
+    EXPECT_EQ(array1[i],array2[i]);\
+  }\
+}
+
+
 TEST(FaceTest,Constructor)
 {
   Megaminx::Face f('w');
@@ -54,6 +63,31 @@ TEST(FaceTest,rotate)
   EXPECT_EQ(f.str(),"Wlxxxxxxde");
 }
 
+TEST(FaceTest,edge_facets)
+{
+  Megaminx::Face f('x');
+  char c = 'a';
+  for(int i=0;i<10;++i) {
+    f.set_facet(i,c+i);
+  }
+  EXPECT_EQ(f.str(),"abcdefghij");
+  auto e = f.edge_facets(0);
+  std::array<char,3> expected = {'a','b','c'};
+  EXPECT_ARRAY_EQ((*e),expected);
+  e = f.edge_facets(1);
+  expected = {'c','d','e'};
+  EXPECT_ARRAY_EQ((*e),expected);
+  e = f.edge_facets(2);
+  expected = {'e','f','g'};
+  EXPECT_ARRAY_EQ((*e),expected);
+  e = f.edge_facets(3);
+  expected = {'g','h','i'};
+  EXPECT_ARRAY_EQ((*e),expected);
+  e = f.edge_facets(4);
+  expected = {'i','j','a'};
+  EXPECT_ARRAY_EQ((*e),expected);
+}
+
 
 //----- Death Tests
 TEST(FaceDeathTest,facets)
@@ -68,10 +102,17 @@ TEST(FaceDeathTest,connect)
 {
   Megaminx::Face f('w');
   std::shared_ptr<Megaminx::Face> fptr(new Megaminx::Face('r'));
-  EXPECT_DEATH(f.connect(10, fptr), "Assertion failed");
+  EXPECT_DEATH(f.connect(5, fptr), "Assertion failed");
   EXPECT_DEATH(f.connect(-1, fptr), "Assertion failed");
   f.connect(0,fptr);
   EXPECT_DEATH(f.connect(0, fptr), "Assertion failed");
+}
+
+TEST(FaceDeathTest,edge_facets)
+{
+  Megaminx::Face f('w');
+  EXPECT_DEATH(f.edge_facets(5), "Assertion failed");
+  EXPECT_DEATH(f.edge_facets(-1), "Assertion failed");
 }
 
 

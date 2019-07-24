@@ -61,7 +61,7 @@ namespace Megaminx
   // There must not already be a connected face at this edge
   void Face::connect(int edge, std::shared_ptr<Face> face)
   {
-    assert(edge >= 0 && edge < 10);
+    assert(edge >= 0 && edge < 5);
     assert(!m_connected_faces[edge].lock());
     m_connected_faces[edge] = face;
   }
@@ -105,6 +105,24 @@ namespace Megaminx
 
     // Insert bottom two at top
     std::copy(bottom_two.begin(),bottom_two.end(),m_facets.begin());
+  }
+
+  // Return the facets along an edge
+  std::unique_ptr<std::array<char,3>> Face::edge_facets(int edge) const
+  {
+    assert(edge >= 0 && edge < 5);
+    std::unique_ptr<std::array<char,3>> facets(new std::array<char,3>());
+    int offset = edge * 2;
+    int end_offset = offset + 3;
+    if (end_offset > 10) {
+      end_offset = 10;
+    }
+    std::copy(m_facets.begin()+offset,m_facets.begin()+end_offset,facets->begin());
+    if (edge == 4) {
+      // Last facet on the last edge is the first facet on the first edge
+      (*facets)[2] = m_facets[0];
+    }
+    return facets;
   }
 
 
