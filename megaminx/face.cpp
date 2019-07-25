@@ -178,7 +178,7 @@ namespace Megaminx
   {
     // Clear the cached state
     m_cached_state.clear();
-    
+
     if (string.size() == 3) {
       if (string[0] != '[' || string[2] != ']') {
         std::string message("Invalid string format for parse: ");
@@ -191,6 +191,27 @@ namespace Megaminx
       std::string message("Invalid string length for parse: ");
       throw parse_error(message + string);
     }
+  }
+
+  std::shared_ptr<Face> Face::opposite_face() const
+  {
+    auto topside_face = connected_face(0);
+    if (!topside_face) throw connection_error("No connected face");
+    int topside_edge = topside_face->connecting_edge(m_colour);
+    int x = topside_edge + 2;
+    if (x > 4) {
+      x -= 5;
+    }
+    auto underside_face = topside_face->connected_face(x);
+    if (!underside_face) throw connection_error("No connected face");
+    int underside_edge = underside_face->connecting_edge(topside_face->colour());
+    int y = underside_edge + 3;
+    if (y > 4) {
+      y -= 5;
+    }
+    auto op_face = underside_face->connected_face(y);
+    if (!op_face) throw connection_error("No connected face");
+    return op_face;
   }
 
 }
