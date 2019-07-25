@@ -174,6 +174,24 @@ namespace Megaminx
     face->set_edge_facets(matching_edge,facets);
   }
 
+  void Face::parse(const std::string& string)
+  {
+    // Clear the cached state
+    m_cached_state.clear();
+    
+    if (string.size() == 3) {
+      if (string[0] != '[' || string[2] != ']') {
+        std::string message("Invalid string format for parse: ");
+        throw parse_error(message + string);
+      }
+      m_facets.fill(string[1]);
+    } else if (string.size() == 10) {
+      std::copy(string.begin(),string.end(),m_facets.begin());
+    } else {
+      std::string message("Invalid string length for parse: ");
+      throw parse_error(message + string);
+    }
+  }
 
 }
 

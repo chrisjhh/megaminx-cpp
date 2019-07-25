@@ -173,6 +173,20 @@ TEST(FaceTest,set_connected_edge_facets)
   EXPECT_EQ(f1->str(), "123defghij");
 }
 
+TEST(FaceTest,parse)
+{
+  Megaminx::Face f('x');
+
+  f.parse("[w]");
+  EXPECT_EQ(f.str(),"[w]");
+  std::string test = "abcdefghij";
+  f.parse(test);
+  EXPECT_EQ(f.str(),test);
+  EXPECT_THROW(f.parse("[a)"),Megaminx::parse_error);
+  EXPECT_THROW(f.parse("a"),Megaminx::parse_error);
+  EXPECT_THROW(f.parse("abcdefghijk"),Megaminx::parse_error);
+}
+
 
 //----- Death Tests
 TEST(FaceDeathTest,facets)
