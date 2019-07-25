@@ -53,7 +53,11 @@ namespace Megaminx {
        */
       std::unique_ptr<std::array<char,3>> connected_edge_facets(int edge) const;
 
-      // Set the connected facets along an edge
+      /**
+       * Set the connected facets along an edge
+       * @param the edge with the connecting facets
+       * @param the facets to set
+       */
       void set_connected_edge_facets(int edge, const std::array<char,3>& facets);
 
       /**

@@ -150,6 +150,29 @@ TEST(FaceTest,connected_edge_facets)
   EXPECT_ARRAY_EQ(*f2->connected_edge_facets(1),expected);
 }
 
+TEST(FaceTest,set_connected_edge_facets)
+{
+  auto f1 = std::make_shared<Megaminx::Face>('x');
+  char c = 'a';
+  for(int i=0;i<10;++i) {
+    f1->set_facet(i,c+i);
+  }
+  std::array<char,3> facets = {'1','2','3'};
+  EXPECT_THROW(f1->set_connected_edge_facets(0,facets),Megaminx::connection_error);
+  auto f2 = std::make_shared<Megaminx::Face>('x');
+  c = 'A';
+  for(int i=0;i<10;++i) {
+    f2->set_facet(i,c+i);
+  }
+  f1->connect(0,f2);
+  EXPECT_THROW(f1->set_connected_edge_facets(0,facets),Megaminx::connection_error);
+  f2->connect(1,f1);
+  f1->set_connected_edge_facets(0,facets);
+  EXPECT_EQ(f2->str(), "AB123FGHIJ");
+  f2->set_connected_edge_facets(1,facets);
+  EXPECT_EQ(f1->str(), "123defghij");
+}
+
 
 //----- Death Tests
 TEST(FaceDeathTest,facets)
@@ -190,6 +213,14 @@ TEST(FaceDeathTest,connected_edge_facets)
   Megaminx::Face f('w');
   EXPECT_DEATH(f.connected_edge_facets(5), "Assertion failed");
   EXPECT_DEATH(f.connected_edge_facets(-1), "Assertion failed");
+}
+
+TEST(FaceDeathTest,set_connected_edge_facets)
+{
+  Megaminx::Face f('w');
+  std::array<char,3> facets = {'1','2','3'};
+  EXPECT_DEATH(f.set_connected_edge_facets(5,facets), "Assertion failed");
+  EXPECT_DEATH(f.set_connected_edge_facets(-1,facets), "Assertion failed");
 }
 
 

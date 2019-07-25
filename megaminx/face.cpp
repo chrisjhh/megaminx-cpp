@@ -165,6 +165,15 @@ namespace Megaminx
     return face->edge_facets(matching_edge);
   }
 
+  void Face::set_connected_edge_facets(int edge, const std::array<char,3>& facets)
+  {
+    assert(edge >= 0 && edge < 5);
+    auto face = connected_face(edge);
+    if (!face) throw connection_error("No connecting face");
+    int matching_edge = face->connecting_edge(m_colour);
+    face->set_edge_facets(matching_edge,facets);
+  }
+
 
 }
 
