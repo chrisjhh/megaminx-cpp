@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "face.h"
+#include "exceptions.h"
 #include <memory>
 
 #define EXPECT_ARRAY_EQ(array1,array2) \
@@ -113,6 +114,18 @@ TEST(FaceTest,set_edge_facets)
   EXPECT_EQ(f.str(),"F24578ABDE");
   f.set_edge_facets(0,*f.edge_facets(4));
   EXPECT_EQ(f.str(),"DEF578ABDE");
+}
+
+TEST(FaceTest,connecting_edge)
+{
+  auto f1 = std::make_shared<Megaminx::Face>('x');
+  EXPECT_THROW(f1->connecting_edge('w'),Megaminx::connection_error);
+  auto f2 = std::make_shared<Megaminx::Face>('w');
+  f1->connect(0,f2);
+  EXPECT_EQ(f1->connecting_edge('w'),0);
+  EXPECT_THROW(f2->connecting_edge('x'),Megaminx::connection_error);
+  f2->connect(2,f1);
+  EXPECT_EQ(f2->connecting_edge('x'),2);
 }
 
 

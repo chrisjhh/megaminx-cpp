@@ -38,16 +38,29 @@ namespace Megaminx {
       // Get the facets along an edge
       std::unique_ptr<std::array<char,3>> edge_facets(int edge) const;
 
-      // Set the facets along an edge
+      /**
+      * Set the facets along an edge
+      * @param edge The edge to set 0 -> 4
+      * @param facets The facets to set
+      */
       void set_edge_facets(int edge, const std::array<char,3>& facets);
 
-      // Get the connected facets along an edge
+      /**
+       * Get the connected facets along an edge
+       * There must be a connected face at this edge
+       * or a Megaminx::connection_error error will be throwm
+       * @param edge the edge 0 -> 4
+       */
       std::unique_ptr<std::array<char,3>> connected_edge_facets(int edge) const;
 
       // Set the connected facets along an edge
       void set_connected_edge_facets(int edge, const std::array<char,3>& facets);
 
-      // Return the edge that is connected to the face of the given colour
+      /**
+       * Return the edge that is connected to the face of the given colour
+       * Throws a Megaminx::connection_error if there is no match
+       * @param col the colour to match
+       */
       int connecting_edge(char col) const;
 
       // Return the face that is opposite to this one

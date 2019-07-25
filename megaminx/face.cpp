@@ -1,5 +1,6 @@
 #include "face.h"
 #include <assert.h>
+#include "exceptions.h"
 
 namespace Megaminx
 {
@@ -125,11 +126,7 @@ namespace Megaminx
     return facets;
   }
 
-  /**
-   * Set the facets along an edge
-   * @param edge The edge to set 0 -> 4
-   * @param facets The facets to set
-   */
+  // Set the facets along an edge
   void Face::set_edge_facets(int edge, const std::array<char,3>& facets) {
     assert(edge >= 0 && edge < 5);
 
@@ -144,6 +141,28 @@ namespace Megaminx
       // the first facet on the first edge
       m_facets[0] = facets[2];
     }
+  }
+
+  // Return the edge that is connected to the face of the given colour
+  int Face::connecting_edge(char col) const
+  {
+    for (int i=0;i<m_connected_faces.size();++i) {
+      auto face = m_connected_faces[i].lock();
+      if (face && face->colour() == col) {
+        return i;
+      }
+    }
+    throw connection_error("No matching face found");
+  }
+
+  // Get the connected facets along an edge
+  std::unique_ptr<std::array<char,3>> Face::connected_edge_facets(int edge) const
+  {
+    assert(edge >= 0 && edge < 5);
+    auto face = connected_face(edge);
+    if (!face) throw connection_error("No connecting face");
+    int matching_edge = face->connecting_edge(m_colour);
+    return face->edge_facets(matching_edge);
   }
 
 
