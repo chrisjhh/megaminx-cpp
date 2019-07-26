@@ -32,6 +32,22 @@ TEST(MegaminxTest,faces) {
   EXPECT_THROW(m.face('j'),Megaminx::face_not_found);
 }
 
+TEST(MegaminxTest,connections) {
+  Megaminx::Megaminx m;
+  EXPECT_EQ(m.face('w')->opposite_face()->colour(), 'x');
+  EXPECT_EQ(m.face('x')->opposite_face()->colour(), 'w');
+  EXPECT_EQ(m.face('r')->opposite_face()->colour(), 'o');
+  EXPECT_EQ(m.face('o')->opposite_face()->colour(), 'r');
+  EXPECT_EQ(m.face('Y')->opposite_face()->colour(), 'y');
+  EXPECT_EQ(m.face('y')->opposite_face()->colour(), 'Y');
+  EXPECT_EQ(m.face('g')->opposite_face()->colour(), 'G');
+  EXPECT_EQ(m.face('G')->opposite_face()->colour(), 'g');
+  EXPECT_EQ(m.face('B')->opposite_face()->colour(), 'b');
+  EXPECT_EQ(m.face('b')->opposite_face()->colour(), 'B');
+  EXPECT_EQ(m.face('p')->opposite_face()->colour(), 'k');
+  EXPECT_EQ(m.face('k')->opposite_face()->colour(), 'p');
+}
+
 //----- Death Tests
 TEST(MegaminxDeathTest,faces)
 {
