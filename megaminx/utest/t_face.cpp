@@ -64,6 +64,40 @@ TEST(FaceTest,rotate)
   EXPECT_EQ(f.str(),"Wlxxxxxxde");
 }
 
+TEST(FaceTest,rotate_with_connections)
+{
+  // Make the face with all connections
+  auto f = std::make_shared<Megaminx::Face>('x');
+  std::vector<std::shared_ptr<Megaminx::Face>> store;
+  char c = 'a';
+  for(int i=0;i<10;++i) {
+    f->set_facet(i,c+i);
+  }
+  c = '1';
+  for (int i=0;i<5;++i) {
+    auto face = std::make_shared<Megaminx::Face>(c+i);
+    // Add it to the store to stop it getting deleted as connections are weak
+    store.push_back(face);
+    f->connect(i,face);
+    face->connect(0,f);
+  }
+
+  f->rotate_anticlockwise();
+  ASSERT_EQ(f->str(), "cdefghijab");
+  ASSERT_EQ(f->connected_face(0)->str(), "2221111111");
+  ASSERT_EQ(f->connected_face(1)->str(), "3332222222");
+  ASSERT_EQ(f->connected_face(2)->str(), "4443333333");
+  ASSERT_EQ(f->connected_face(3)->str(), "5554444444");
+  ASSERT_EQ(f->connected_face(4)->str(), "1115555555");
+  f->rotate_clockwise();
+  ASSERT_EQ(f->str(), "abcdefghij");
+  ASSERT_EQ(f->connected_face(0)->str(), "[1]");
+  ASSERT_EQ(f->connected_face(1)->str(), "[2]");
+  ASSERT_EQ(f->connected_face(2)->str(), "[3]");
+  ASSERT_EQ(f->connected_face(3)->str(), "[4]");
+  ASSERT_EQ(f->connected_face(4)->str(), "[5]");
+}
+
 TEST(FaceTest,edge_facets)
 {
   Megaminx::Face f('x');

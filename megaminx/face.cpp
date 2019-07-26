@@ -1,5 +1,6 @@
 #include "face.h"
 #include <assert.h>
+#include <algorithm>
 #include "exceptions.h"
 
 namespace Megaminx
@@ -89,6 +90,20 @@ namespace Megaminx
 
     // Insert top two at bottom
     std::copy(top_two.begin(),top_two.end(),m_facets.end()-2);
+
+    // If we have connected faces rotate them too
+    if (std::all_of(
+      m_connected_faces.begin(), 
+      m_connected_faces.end(),
+      [](std::weak_ptr<Face> f) { return f.lock() != nullptr; } 
+    )) {
+      auto after = connected_edge_facets(0);
+      for (int i=4;i>=0;--i) {
+        auto safe = connected_edge_facets(i);
+        set_connected_edge_facets(i,*after);
+        after.reset(safe.release());
+      }
+    }
   }
 
   // Rotate the face clockwise
@@ -106,6 +121,20 @@ namespace Megaminx
 
     // Insert bottom two at top
     std::copy(bottom_two.begin(),bottom_two.end(),m_facets.begin());
+
+    // If we have connected faces rotate them too
+    if (std::all_of(
+      m_connected_faces.begin(), 
+      m_connected_faces.end(),
+      [](std::weak_ptr<Face> f) { return f.lock() != nullptr; } 
+    )) {
+      auto before = connected_edge_facets(4);
+      for (int i=0;i<5;++i) {
+        auto safe = connected_edge_facets(i);
+        set_connected_edge_facets(i,*before);
+        before.reset(safe.release());
+      }
+    }
   }
 
   // Return the facets along an edge
