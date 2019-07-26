@@ -21,5 +21,9 @@ namespace Megaminx {
    * Exception thrown if megaminx face fails to parse from string given
    */
   DERIVED_EXCEPTION(parse_error);
-  
+
+  /**
+   * Exception thrown for a face not found
+   */
+  DERIVED_EXCEPTION(face_not_found);
 }
