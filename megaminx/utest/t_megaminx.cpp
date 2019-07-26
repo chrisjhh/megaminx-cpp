@@ -33,6 +33,7 @@ TEST(MegaminxTest,faces) {
 }
 
 TEST(MegaminxTest,connections) {
+  // Check the megaminx is wired up right
   Megaminx::Megaminx m;
   EXPECT_EQ(m.face('w')->opposite_face()->colour(), 'x');
   EXPECT_EQ(m.face('x')->opposite_face()->colour(), 'w');
@@ -46,6 +47,14 @@ TEST(MegaminxTest,connections) {
   EXPECT_EQ(m.face('b')->opposite_face()->colour(), 'B');
   EXPECT_EQ(m.face('p')->opposite_face()->colour(), 'k');
   EXPECT_EQ(m.face('k')->opposite_face()->colour(), 'p');
+}
+
+TEST(MegaminxTest,str)
+{
+  Megaminx::Megaminx m;
+  EXPECT_EQ(m.str(), Megaminx::solved);
+  m.face('w')->rotate_clockwise();
+  EXPECT_EQ(m.str(), "[w]rrBBBrrrrrrrrGGGGGGGppppppGGGpYYYYpppYYYYBBBBBBBYY[x][y][k][g][o][b]");
 }
 
 //----- Death Tests

@@ -1,6 +1,8 @@
 #include "megaminx.h"
 #include "face.h"
 #include <assert.h>
+#include <string>
+#include <memory>
 #include "exceptions.h"
 
 namespace Megaminx {
@@ -55,5 +57,17 @@ namespace Megaminx {
       }
     }
     throw face_not_found(std::string("No such face with colour ") + col);
+  }
+
+  std::string Megaminx::str() const
+  {
+    std::string result;
+    result.reserve(120);
+    std::for_each(
+      m_faces.begin(),
+      m_faces.end(),
+      [&result](std::shared_ptr<Face> f) {result.append(f->str());}
+    );
+    return result;
   }
 }
