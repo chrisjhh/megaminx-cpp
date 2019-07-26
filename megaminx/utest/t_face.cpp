@@ -187,6 +187,25 @@ TEST(FaceTest,parse)
   EXPECT_THROW(f.parse("abcdefghijk"),Megaminx::parse_error);
 }
 
+TEST(FaceTest,opposite_face)
+{
+  auto top = std::make_shared<Megaminx::Face>('1');
+  EXPECT_THROW(top->opposite_face(),Megaminx::connection_error);
+  auto topside = std::make_shared<Megaminx::Face>('2');
+  top->connect(0,topside);
+  EXPECT_THROW(top->opposite_face(),Megaminx::connection_error);
+  topside->connect(0,top);
+  EXPECT_THROW(top->opposite_face(),Megaminx::connection_error);
+  auto bottomside = std::make_shared<Megaminx::Face>('3');
+  topside->connect(2,bottomside);
+  EXPECT_THROW(top->opposite_face(),Megaminx::connection_error);
+  bottomside->connect(0,topside);
+  EXPECT_THROW(top->opposite_face(),Megaminx::connection_error);
+  auto bottom = std::make_shared<Megaminx::Face>('4');
+  bottomside->connect(3,bottom);
+  EXPECT_EQ(top->opposite_face()->colour(),'4');
+}
+
 
 //----- Death Tests
 TEST(FaceDeathTest,facets)
