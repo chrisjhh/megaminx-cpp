@@ -11,6 +11,12 @@ namespace Megaminx {
       // Initialise the array of facets with the given char
       Face(char c);
 
+      // Copy constructor
+      Face(const Face& other);
+
+      // Asignment operator
+      Face& operator=(const Face& other);
+
       // Return the 'colour' of the face
       char colour() const;
 
@@ -73,9 +79,13 @@ namespace Megaminx {
       // Parse this face from the string representation
       void parse(const std::string& string);
 
+      // Utility method for copy constructor and assignment operator
+      void become(const Face& other);
 
     protected:
     private:
+      
+
       // The colour of this face
       char m_colour;
 

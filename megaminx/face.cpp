@@ -12,6 +12,19 @@ namespace Megaminx
     m_facets.fill(c);
   }
 
+  // Copy constructor
+  Face::Face(const Face& other)
+  {
+    become(other);
+  }
+
+  // Assignment operator
+  Face& Face::operator=(const Face& other)
+  {
+    become(other);
+    return *this;
+  }
+
   // Return a string representation of the face
   std::string Face::str() const 
   {
@@ -54,6 +67,9 @@ namespace Megaminx
   // Set an individual facet of the face
   void Face::set_facet(int i, char c)
   {
+    // Clear the cached state
+    m_cached_state.clear();
+    
     assert(i >= 0 && i < 10);
     m_facets[i] = c;
   }
@@ -241,6 +257,12 @@ namespace Megaminx
     auto op_face = underside_face->connected_face(y);
     if (!op_face) throw connection_error("No connected face");
     return op_face;
+  }
+
+  void Face::become(const Face& other) {
+    m_colour = other.colour();
+    std::copy(other.m_facets.begin(), other.m_facets.end(), m_facets.begin());
+    m_cached_state = other.m_cached_state;
   }
 
 }

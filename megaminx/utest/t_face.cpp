@@ -19,6 +19,24 @@ TEST(FaceTest,Constructor)
   EXPECT_EQ(f.colour(), 'w');
 }
 
+TEST(FaceTest,become)
+{
+  Megaminx::Face f1('w');
+  Megaminx::Face f2(f1);
+  EXPECT_EQ(f2.str(), "[w]");
+  Megaminx::Face f3('r');
+  f1 = f3;
+  EXPECT_EQ(f1.str(), "[r]");
+  Megaminx::Face f4 = f2;
+  EXPECT_EQ(f4.str(), "[w]");
+  f4.set_facet(3,'x');
+  EXPECT_EQ(f2.str(), "[w]");
+  f2 = f4;
+  EXPECT_EQ(f2.str(), "wwwxwwwwww");
+  f1.become(f2);
+  EXPECT_EQ(f1.str(), "wwwxwwwwww");
+}
+
 TEST(FaceTest,facets)
 {
   Megaminx::Face f('w');
