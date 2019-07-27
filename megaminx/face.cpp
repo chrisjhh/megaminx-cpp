@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <algorithm>
 #include "exceptions.h"
+//#include <iostream>
 
 namespace Megaminx
 {
@@ -69,7 +70,7 @@ namespace Megaminx
   {
     // Clear the cached state
     m_cached_state.clear();
-    
+
     assert(i >= 0 && i < 10);
     m_facets[i] = c;
   }
@@ -221,6 +222,7 @@ namespace Megaminx
 
   void Face::parse(const std::string& string)
   {
+    //std::cout << "parse(\"" << string << "\");" << std::endl; 
     // Clear the cached state
     m_cached_state.clear();
 

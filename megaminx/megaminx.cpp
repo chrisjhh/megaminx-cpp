@@ -29,6 +29,11 @@ namespace Megaminx {
   // Constructor
   Megaminx::Megaminx()
   {
+    init();
+  }
+
+  void Megaminx::init()
+  {
     // Construct the faces
     for (int i=0;i<12;++i) {
       m_faces[i] = std::make_shared<Face>(colours[i]);
@@ -39,6 +44,20 @@ namespace Megaminx {
         m_faces[i]->connect(j,face(connections[i][j]));
       }
     }
+  }
+
+  // Copy constructor
+  Megaminx::Megaminx(const Megaminx& other)
+  {
+    init();
+    become(other);
+  }
+
+  // Asignment operator
+  Megaminx& Megaminx::operator=(const Megaminx& other)
+  {
+    become(other);
+    return *this;
   }
 
   // Return face by index
@@ -75,14 +94,30 @@ namespace Megaminx {
   void Megaminx::parse(const std::string& string)
   {
     auto pos = string.begin();
-    for (int i=0; i<10; ++i) {
+    for (int i=0; i<12; ++i) {
+      if (pos == string.end()) {
+        throw parse_error("String does not contain all faces");
+      }
       if (*pos == '[') {
+        if (std::distance(pos,string.end()) < 3) {
+          throw parse_error("String not long enough");
+        }
         m_faces[i]->parse(std::string(pos, pos+3));
         pos += 3;
       } else {
+        if (std::distance(pos,string.end()) < 10) {
+          throw parse_error("String not long enough");
+        }
         m_faces[i]->parse(std::string(pos, pos+10));
         pos += 10;
       }
+    }
+  }
+
+  void Megaminx::become(const Megaminx& other)
+  {
+    for (int i=0;i<12;++i) {
+      m_faces[i]->become(*other.m_faces[i]);
     }
   }
 }

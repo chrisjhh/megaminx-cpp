@@ -22,6 +22,12 @@ namespace Megaminx {
       // Constructor
       Megaminx();
 
+      // Copy constructor
+      Megaminx(const Megaminx& other);
+
+      // Asignment operator
+      Megaminx& operator=(const Megaminx& other);
+
       /**
        * Return a face of the puzzle by index
        * @param i The index 0 -> 11
@@ -40,8 +46,13 @@ namespace Megaminx {
       // Parse the state of the megaminx from the string
       void parse(const std::string& string);
 
+      // Utility function for asignment operator and copy constructor
+      void become(const Megaminx& other);
+
     protected:
     private:
+      // Utility to do the guts of construction
+      void init();
       std::array<std::shared_ptr<Face>,12> m_faces;
   };
 
