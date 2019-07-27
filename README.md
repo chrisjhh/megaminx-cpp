@@ -21,3 +21,16 @@ cmake --build . --config Debug
 cd megaminx
 ctest [-V]
 ```
+
+## Installing sqlite
+In a separate directory
+```shell
+git clone https://github.com/azadkuh/sqlite-amalgamation.git
+cd sqlite-amalgamation
+mkdir _build
+cd _build
+cmake ..
+cmake-gui .
+cmake --build . --config Release
+cmake --install .
+```
