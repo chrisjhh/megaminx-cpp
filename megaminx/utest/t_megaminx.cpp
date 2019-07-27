@@ -57,6 +57,19 @@ TEST(MegaminxTest,str)
   EXPECT_EQ(m.str(), "[w]rrBBBrrrrrrrrGGGGGGGppppppGGGpYYYYpppYYYYBBBBBBBYY[x][y][k][g][o][b]");
 }
 
+TEST(MegaminxTest,parse)
+{
+  Megaminx::Megaminx m;
+  std::string test = "[w]rrBBBrrrrrrrrGGGGGGGppppppGGGpYYYYpppYYYYBBBBBBBYY[x][y][k][g][o][b]";
+  m.parse(test);
+  EXPECT_EQ(m.str(), test);
+  m.face('w')->rotate_anticlockwise();
+  EXPECT_EQ(m.str(), Megaminx::solved);
+  m.face('w')->rotate_clockwise();
+  m.parse(Megaminx::solved);
+  EXPECT_EQ(m.str(), Megaminx::solved);
+}
+
 //----- Death Tests
 TEST(MegaminxDeathTest,faces)
 {

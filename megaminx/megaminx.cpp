@@ -59,6 +59,7 @@ namespace Megaminx {
     throw face_not_found(std::string("No such face with colour ") + col);
   }
 
+  // Return string representation of the state
   std::string Megaminx::str() const
   {
     std::string result;
@@ -69,5 +70,19 @@ namespace Megaminx {
       [&result](std::shared_ptr<Face> f) {result.append(f->str());}
     );
     return result;
+  }
+
+  void Megaminx::parse(const std::string& string)
+  {
+    auto pos = string.begin();
+    for (int i=0; i<10; ++i) {
+      if (*pos == '[') {
+        m_faces[i]->parse(std::string(pos, pos+3));
+        pos += 3;
+      } else {
+        m_faces[i]->parse(std::string(pos, pos+10));
+        pos += 10;
+      }
+    }
   }
 }
