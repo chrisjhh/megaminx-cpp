@@ -34,3 +34,9 @@ cmake-gui .
 cmake --build . --config Release
 cmake --install .
 ```
+
+# Using sqlite
+```cmake
+find_package(Sqlite3)
+target_link_libraries(${TARGET} sqlite3::sqlite3)
+```
