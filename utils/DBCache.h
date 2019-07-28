@@ -17,5 +17,5 @@ namespace Utils {
       std::pair<std::string,std::string> get_any(const std::set<std::string>& keys);
     protected:
     private:
-  }
+  };
 }
