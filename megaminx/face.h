@@ -41,6 +41,10 @@ namespace Megaminx {
       // Rotate this face anticlockwise
       void rotate_anticlockwise();
 
+      // These are not legal moves but can be useful for setting the cube up to solve
+      void rotate_corner_clockwise(int corner);
+      void rotate_corner_anticlockwise(int corner);
+
       // Get the facets along an edge
       std::unique_ptr<std::array<char,3>> edge_facets(int edge) const;
 
@@ -84,7 +88,7 @@ namespace Megaminx {
 
     protected:
     private:
-      
+      void rotate_corner(int corner, bool clockwise);
 
       // The colour of this face
       char m_colour;

@@ -4,6 +4,7 @@
 #include <string>
 #include <memory>
 #include "exceptions.h"
+#include <cctype>
 
 namespace Megaminx {
 
@@ -110,6 +111,51 @@ namespace Megaminx {
         }
         m_faces[i]->parse(std::string(pos, pos+10));
         pos += 10;
+      }
+    }
+  }
+
+  void Megaminx::apply(const std::string& instructions)
+  {
+    auto pos = instructions.begin();
+    auto end = instructions.end();
+    while(pos != end) {
+      char col = *pos;
+      std::shared_ptr<Face> f;
+      try {
+        f = face(col);
+      } catch (face_not_found e) {
+        throw invalid_instruction(e.what());
+      }
+      ++pos;
+      if (pos == end) {
+        throw invalid_instruction("No direction given");
+      }
+      char dir = *pos;
+      if (dir != '<' && dir != '>') {
+        throw invalid_instruction(std::string("Invalid direction given") + dir);
+      }
+      ++pos;
+      // See if there is a number
+      int num = 1;
+      if (pos != end && std::isdigit(*pos)) {
+        num = *pos - '0';
+        assert(num >= 0 && num <= 9);
+        if (num == 0) {
+          throw invalid_instruction("Zero is not a valid number of moves");
+        }
+        ++pos;
+      }
+      for (int i=0; i<num; ++i) {
+        if (dir == '>') {
+          f->rotate_clockwise();
+        } else {
+          f->rotate_anticlockwise();
+        }
+      }
+      // Iterate past any spaces
+      while (pos != end && *pos == ' ') {
+        ++pos;
       }
     }
   }

@@ -46,6 +46,12 @@ namespace Megaminx {
       // Parse the state of the megaminx from the string
       void parse(const std::string& string);
 
+      // Apply a list of instructions to the megaminx
+      // inscrutions are in the form of colour + rotation [+number]
+      // eg. "x> Y< G>2" for rotate grey clockwise, dark yellow anticlockwise
+      // and green clockwise twice
+      void apply(const std::string& instructions);
+
       // Utility function for asignment operator and copy constructor
       void become(const Megaminx& other);
 

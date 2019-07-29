@@ -86,6 +86,29 @@ TEST(MegaminxTest,become)
   EXPECT_EQ(m2.str(), test);
 }
 
+TEST(MegaminxTest,rotate_corner)
+{
+  Megaminx::Megaminx m;
+  m.face('x')->rotate_corner_clockwise(4);
+  EXPECT_EQ(m.str(), "[w][r][G][p][Y][B]xxxxxxxxbx[y][k][g]ooooxoooooobbbbbbbbb");
+  m.face('x')->rotate_corner_anticlockwise(4);
+  EXPECT_EQ(m.str(), Megaminx::solved);
+}
+
+TEST(MegaminxTest,apply)
+{
+  Megaminx::Megaminx m;
+  m.face('x')->rotate_corner_clockwise(4);
+  m.face('x')->rotate_corner_anticlockwise(3);
+  // Try to solve
+  m.apply("o> x< o< x<2 b< x>3 b> x>2 o> x<2 o< x>2");
+  m.apply("b< x> b> x>2 o> x<3 o< x<2 b< x>2 b> x<2");
+  m.apply("g> x< g< x<2 o< x>3 o> x> g> x< g< x>");
+  m.apply("o< x> o> x>2 g> x<3 g< x< o< x> o> x<");
+  EXPECT_EQ(m.str(), Megaminx::solved);
+}
+
+
 //----- Death Tests
 TEST(MegaminxDeathTest,faces)
 {

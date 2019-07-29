@@ -154,6 +154,58 @@ namespace Megaminx
     }
   }
 
+  void Face::rotate_corner_clockwise(int corner)
+  {
+    rotate_corner(corner, true);
+  }
+
+  void Face::rotate_corner_anticlockwise(int corner)
+  {
+    rotate_corner(corner, false);
+  }
+
+  void Face::rotate_corner(int corner, bool clockwise)
+  {
+    // Clear the cached state
+    m_cached_state.clear();
+    
+    assert(corner >=0 && corner < 5);
+    int facet_index = corner * 2;
+    int edge_before = corner - 1;
+    if (edge_before < 0) {
+      edge_before += 5;
+    }
+    int edge_after = corner;
+    char top = m_facets[facet_index];
+    std::unique_ptr<std::array<char,3>> before_side = 
+      connected_edge_facets(edge_before);
+    std::unique_ptr<std::array<char,3>> after_side = 
+      connected_edge_facets(edge_after);
+    char before = (*before_side)[0];
+    char after = (*after_side)[2];
+    if (clockwise) {
+      // Rotate clockwise top -> before -> after -> top
+      char safe = before;
+      before = top;
+      top = after;
+      after = safe;
+    } else {
+      // Rotate anticlockwise top -> after -> before -> top
+      char safe = after;
+      after = top;
+      top = before;
+      before = safe;
+    }
+    // Put them back
+    (*before_side)[0] = before;
+    set_connected_edge_facets(edge_before, *before_side);
+    (*after_side)[2] = after;
+    set_connected_edge_facets(edge_after, *after_side);
+    m_facets[facet_index] = top;
+  }
+
+  
+
   // Return the facets along an edge
   std::unique_ptr<std::array<char,3>> Face::edge_facets(int edge) const
   {
