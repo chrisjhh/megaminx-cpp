@@ -6,7 +6,8 @@
 namespace Utils {
 
   DBCache::DBCache(const std::string& filename)
-    : m_insert_statement(0)
+    : m_insert_statement(0),
+      m_select_statement(0)
   {
     // Initialise the database connection
     sqlite3_open(
@@ -76,6 +77,35 @@ namespace Utils {
       throw std::runtime_error(message + std::to_string(result));
     }
 
+  }
+
+  std::string DBCache::get(const std::string& key)
+  {
+    // create the insert statement if it does not exist
+    if (!m_select_statement) {
+      std::string sql = "SELECT value FROM cache WHERE key = ?;";
+      const char* tail;
+      sqlite3_prepare_v2(m_db, sql.c_str(), sql.size(), &m_select_statement, &tail);
+    } else {
+      // Reset it if it does
+      sqlite3_reset(m_select_statement);
+    }
+
+    // Bind the value
+    sqlite3_bind_text(m_select_statement, 1, key.c_str(), (int)key.size(), SQLITE_STATIC);
+
+    // Execute the statement
+    int result = sqlite3_step(m_select_statement);
+    if (result == SQLITE_DONE) {
+      // Nothing found. Return empty string
+      return std::string();
+    }
+    if (result != SQLITE_ROW) {
+      std::string message("Unexpected return value from select statement: ");
+      throw std::runtime_error(message + std::to_string(result));
+    }
+    const unsigned char* value_str = sqlite3_column_text(m_select_statement, 0);
+    return std::string((const char*)value_str);
   }
 
 }
