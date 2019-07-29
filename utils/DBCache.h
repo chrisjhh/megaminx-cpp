@@ -30,5 +30,6 @@ namespace Utils {
       void create_cache_table();
 
       sqlite3* m_db;
+      sqlite3_stmt* m_insert_statement;
   };
 }
