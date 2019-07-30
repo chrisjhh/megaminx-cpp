@@ -20,6 +20,13 @@ namespace Utils {
 
   DBCache::~DBCache()
   {
+    // Finalize any starements still in use
+    if (m_insert_statement) {
+      sqlite3_finalize(m_insert_statement);
+    }
+    if (m_select_statement) {
+      sqlite3_finalize(m_select_statement);
+    }
     // Close the database connection
     sqlite3_close(m_db);
   }
