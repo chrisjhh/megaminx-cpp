@@ -32,5 +32,7 @@ namespace Utils {
       sqlite3* m_db;
       sqlite3_stmt* m_insert_statement;
       sqlite3_stmt* m_select_statement;
+      sqlite3_stmt* m_multi_select_statement;
+      int m_last_multi_select_count;
   };
 }

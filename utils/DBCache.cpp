@@ -2,12 +2,15 @@
 #include <string>
 #include "sqlite3.h"
 #include <stdexcept>
+#include <assert.h>
 
 namespace Utils {
 
   DBCache::DBCache(const std::string& filename)
-    : m_insert_statement(0),
-      m_select_statement(0)
+    : m_insert_statement(nullptr),
+      m_select_statement(nullptr),
+      m_multi_select_statement(nullptr),
+      m_last_multi_select_count(0)
   {
     // Initialise the database connection
     sqlite3_open(
@@ -26,6 +29,9 @@ namespace Utils {
     }
     if (m_select_statement) {
       sqlite3_finalize(m_select_statement);
+    }
+    if (m_multi_select_statement) {
+      sqlite3_finalize(m_multi_select_statement);
     }
     // Close the database connection
     sqlite3_close(m_db);
@@ -113,6 +119,62 @@ namespace Utils {
     }
     const unsigned char* value_str = sqlite3_column_text(m_select_statement, 0);
     return std::string((const char*)value_str);
+  }
+
+  std::pair<std::string,std::string> DBCache::get_any(const std::set<std::string>& keys)
+  {
+    assert(!keys.empty());
+    // Reuse previous statement if it is applicable
+    if (m_multi_select_statement) {
+      if (m_last_multi_select_count == keys.size()) {
+        // Reuse
+        sqlite3_reset(m_multi_select_statement);
+      } else {
+        // Dispose
+        sqlite3_finalize(m_multi_select_statement);
+        m_multi_select_statement = nullptr;
+      }
+    }
+    if (!m_multi_select_statement) {
+      // Prepare or re-prepare
+      std::string sql = "SELECT key,value FROM cache WHERE key IN (";
+      for (int i=0; i< keys.size() - 1; ++i) {
+        sql += "?,";
+      }
+      sql += "?) LIMIT 1;";
+      const char* tail;
+      sqlite3_prepare_v2(m_db, sql.c_str(), sql.size(), &m_multi_select_statement, &tail);
+      m_last_multi_select_count = keys.size();
+    }
+
+    // Bind the values
+    int index = 0;
+    for (std::string key : keys) {
+      ++index;
+      sqlite3_bind_text(
+        m_multi_select_statement, 
+        index, 
+        key.c_str(), 
+        (int)key.size(), 
+        SQLITE_STATIC
+      );
+    }
+
+    // Execute the statement
+    int result = sqlite3_step(m_multi_select_statement);
+    if (result == SQLITE_DONE) {
+      // Nothing found. Return empty pair
+      return std::pair<std::string,std::string>();
+    }
+    if (result != SQLITE_ROW) {
+      std::string message("Unexpected return value from select-any statement: ");
+      throw std::runtime_error(message + std::to_string(result));
+    }
+    // Get the values from the returned row
+    const unsigned char* key_str = sqlite3_column_text(m_select_statement, 0);
+    const unsigned char* value_str = sqlite3_column_text(m_select_statement, 1);
+    // Return as a pair
+    return std::pair<std::string,std::string>((const char*)key_str,(const char*)value_str);
   }
 
 }
