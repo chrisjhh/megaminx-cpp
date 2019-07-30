@@ -1,5 +1,8 @@
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 3.11)
 project(Solver)
+
+# Use gtest
+include(googletest.cmake)
 
 enable_testing()
 
