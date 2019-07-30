@@ -3,6 +3,7 @@
 #include "sqlite3.h"
 #include <stdexcept>
 #include <assert.h>
+//#include <iostream>
 
 namespace Utils {
 
@@ -128,6 +129,7 @@ namespace Utils {
     if (m_multi_select_statement) {
       if (m_last_multi_select_count == keys.size()) {
         // Reuse
+        //std::cout << "Reusing last statement" << std::endl;
         sqlite3_reset(m_multi_select_statement);
       } else {
         // Dispose
@@ -142,6 +144,7 @@ namespace Utils {
         sql += "?,";
       }
       sql += "?) LIMIT 1;";
+      //std::cout << "Preparing statement \"" << sql << "\"" << std::endl;
       const char* tail;
       sqlite3_prepare_v2(m_db, sql.c_str(), sql.size(), &m_multi_select_statement, &tail);
       m_last_multi_select_count = keys.size();
@@ -149,8 +152,9 @@ namespace Utils {
 
     // Bind the values
     int index = 0;
-    for (std::string key : keys) {
+    for (const std::string& key : keys) {
       ++index;
+      //std::cout << "Binding key " << index << " to " << key << std::endl; 
       sqlite3_bind_text(
         m_multi_select_statement, 
         index, 
@@ -164,6 +168,7 @@ namespace Utils {
     int result = sqlite3_step(m_multi_select_statement);
     if (result == SQLITE_DONE) {
       // Nothing found. Return empty pair
+      //std::cout << "Nothing found" << std::endl;
       return std::pair<std::string,std::string>();
     }
     if (result != SQLITE_ROW) {
@@ -171,8 +176,10 @@ namespace Utils {
       throw std::runtime_error(message + std::to_string(result));
     }
     // Get the values from the returned row
-    const unsigned char* key_str = sqlite3_column_text(m_select_statement, 0);
-    const unsigned char* value_str = sqlite3_column_text(m_select_statement, 1);
+    const unsigned char* key_str = sqlite3_column_text(m_multi_select_statement, 0);
+    const unsigned char* value_str = sqlite3_column_text(m_multi_select_statement, 1);
+    //std::cout << "returning pair <" << (const char*)key_str << "," << 
+    // (const char*)value_str << ">" << std::endl; 
     // Return as a pair
     return std::pair<std::string,std::string>((const char*)key_str,(const char*)value_str);
   }
