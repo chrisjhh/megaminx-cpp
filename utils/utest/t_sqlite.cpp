@@ -68,9 +68,44 @@ TEST(SQLiteTest,Basic)
     EXPECT_EQ(result, SQLITE_DONE);
   }
 
-
   // Dispose of the statement
   sqlite3_finalize(insert_stmt);
+
+  // Query an entry
+  sql = "SELECT value FROM cache WHERE key = ?;";
+  sqlite3_stmt* select_stmt;
+  sqlite3_prepare_v2(db, sql.c_str(), sql.size(), &select_stmt, &tail);
+
+  key = "name";
+  sqlite3_bind_text(select_stmt, 1, key.c_str(), (int)key.size(), SQLITE_STATIC);
+
+  result = sqlite3_step(select_stmt);
+  ASSERT_EQ(result, SQLITE_ROW);
+  const char* value_str = (const char*)sqlite3_column_text(select_stmt, 0);
+  EXPECT_EQ(std::string(value_str), "Chris");
+
+  // Reuse statement for another query
+  sqlite3_reset(select_stmt);
+
+  key = "age";
+  sqlite3_bind_text(select_stmt, 1, key.c_str(), (int)key.size(), SQLITE_STATIC);
+
+  result = sqlite3_step(select_stmt);
+  ASSERT_EQ(result, SQLITE_ROW);
+  value_str = (const char*)sqlite3_column_text(select_stmt, 0);
+  EXPECT_EQ(std::string(value_str), "48");
+
+  // Reuse statement for another query for something that does not exist
+  sqlite3_reset(select_stmt);
+
+  key = "wibble";
+  sqlite3_bind_text(select_stmt, 1, key.c_str(), (int)key.size(), SQLITE_STATIC);
+
+  result = sqlite3_step(select_stmt);
+  ASSERT_EQ(result, SQLITE_DONE);
+
+  // Dispose of statement
+  sqlite3_finalize(select_stmt);
 
   sqlite3_close(db);
 
