@@ -43,7 +43,7 @@ TEST(FilePagedQueueTest,push)
   MKDIR(dir);
   {
     Utils::FilePagedQueue<int> q(dir,"queue",3);
-    for(int i=1;i<=100;++i) {
+    for(int i=1;i<=20;++i) {
       q.push(i);
       EXPECT_EQ(q.size(), i);
       EXPECT_TRUE(!q.empty());

@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 namespace fs = std::experimental::filesystem;
 
 namespace Utils {
@@ -122,8 +123,10 @@ namespace Utils {
           m_writer.join();
         }
         ++m_last_write;
-        m_writer = std::thread(&FilePagedQueue::page,this,m_tail);
+        m_keep_alive = m_tail;
+        m_writer = std::thread(&FilePagedQueue::page,this,m_keep_alive);
         m_records_paged += m_tail->size();
+        //std::cout << "Records paged: " << m_records_paged << std::endl;
         // Start a new tail queue
         m_tail = std::make_shared<std::queue<T>>();
       }
@@ -160,7 +163,10 @@ namespace Utils {
   template<class T>
   std::string FilePagedQueue<T>::page_file(int counter) const
   {
+    //std::cout << "page_file(" << counter << ")" << std::endl;
+    //std::cout << "dir 1: " << m_dir << std::endl;
     fs::path dir = m_dir;
+    //std::cout << "dir 2: " << dir << std::endl;
     fs::path file = m_prefix;
     file += std::to_string(counter);
     file += ".q";
@@ -172,9 +178,12 @@ namespace Utils {
   template<class T>
   void FilePagedQueue<T>::page(std::shared_ptr<std::queue<T>> queue)
   {
+    //std::cout << "paging..." << std::endl;
+    //std::cout << "queue size: " << queue->size() << std::endl;
     assert(!queue->empty());
     assert(queue->size() == m_page_size);
     std::string file = page_file(m_last_write);
+    //std::cout << "Filename: " << file << std::endl;
     std::ofstream out(file.c_str());
     while (!queue->empty()) {
       out << queue->front() << std::endl;
@@ -198,6 +207,18 @@ namespace Utils {
     }
     input.close();
     assert(queue->size() == m_page_size);
+  }
+
+  template<class T>
+  FilePagedQueue<T>::~FilePagedQueue()
+  {
+    // Make sure threads finish
+    if (m_writer.joinable()) {
+      m_writer.join();
+    }
+    if (m_reader.joinable()) {
+      m_reader.join();
+    }
   }
 
 }

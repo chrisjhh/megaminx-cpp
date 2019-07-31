@@ -31,6 +31,8 @@ namespace Utils {
       // Return the number of elements in the queue
       size_t size() const;
 
+      ~FilePagedQueue();
+
     protected:
     private:
       // Get the path to the pagefile to use
@@ -45,7 +47,8 @@ namespace Utils {
       size_t m_page_size;
       std::shared_ptr<std::queue<T>> m_head;
       std::shared_ptr<std::queue<T>> m_next;
-      std::shared_ptr<std::queue<T>> m_tail; 
+      std::shared_ptr<std::queue<T>> m_tail;
+      std::shared_ptr<std::queue<T>> m_keep_alive;
       size_t m_records_paged;
       int m_current_read;
       int m_last_write;
