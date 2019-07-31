@@ -1,4 +1,4 @@
-add_library(utils DBCache.cpp)
+add_library(utils DBCache.cpp FilePagedQueue.cpp)
 
 target_link_libraries(utils sqlite3)
 include_directories("${PROJECT_SOURCE_DIR}/sqlite3")
