@@ -58,9 +58,9 @@ namespace Utils {
 
   // Remove the first element
   template<class T>
-  void FilePagedQueue<T>::pop_front()
+  void FilePagedQueue<T>::pop()
   {
-    m_head->pop_front();
+    m_head->pop();
     if (m_head->empty()) {
       // We are finished with the file we were reading
       if (m_current_read) {
@@ -102,10 +102,10 @@ namespace Utils {
 
   // Add element to the end
   template<class T>
-  void FilePagedQueue<T>::push_back(const T& value)
+  void FilePagedQueue<T>::push(const T& value)
   {
-    m_tail->push_back(value);
-    if (m_tail.size() >= m_page_size) {
+    m_tail->push(value);
+    if (m_tail->size() >= m_page_size) {
       // Tail has reachd page size
       // Case 1: If head and tail are the same split them into separate queues
       if (m_tail == m_head) {
@@ -165,7 +165,7 @@ namespace Utils {
     file += std::to_string(counter);
     file += ".q";
     fs::path full = dir / file;
-    return full;
+    return full.string();
   }
       
   // Write the queue to disk
@@ -176,8 +176,9 @@ namespace Utils {
     assert(queue->size() == m_page_size);
     std::string file = page_file(m_last_write);
     std::ofstream out(file.c_str());
-    for (const T& item : *queue) {
-      out << item << std::endl;
+    while (!queue->empty()) {
+      out << queue->front() << std::endl;
+      queue->pop();
     }
     out.close();
   }
@@ -193,7 +194,7 @@ namespace Utils {
     T item;
     while (input >> item)
     {
-      queue->push_back(item);
+      queue->push(item);
     }
     input.close();
     assert(queue->size() == m_page_size);

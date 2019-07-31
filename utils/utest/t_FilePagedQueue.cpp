@@ -29,8 +29,25 @@ TEST(FilePagedQueueTest,constructor)
 {
   std::string dir = "t_FilePagedCache_01";
   MKDIR(dir);
-  Utils::FilePagedQueue<int> q(dir,"queue",3);
-  EXPECT_EQ(q.size(), 0);
-  EXPECT_TRUE(q.empty());
+  {
+    Utils::FilePagedQueue<int> q(dir,"queue",3);
+    EXPECT_EQ(q.size(), 0);
+    EXPECT_TRUE(q.empty());
+  }
+  RMDIR(dir);
+}
+
+TEST(FilePagedQueueTest,push)
+{
+  std::string dir = "t_FilePagedCache_02";
+  MKDIR(dir);
+  {
+    Utils::FilePagedQueue<int> q(dir,"queue",3);
+    for(int i=1;i<=100;++i) {
+      q.push(i);
+      EXPECT_EQ(q.size(), i);
+      EXPECT_TRUE(!q.empty());
+    }
+  }
   RMDIR(dir);
 }

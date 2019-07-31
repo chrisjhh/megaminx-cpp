@@ -20,10 +20,10 @@ namespace Utils {
       const T& back() const;
 
       // Remove the first element
-      void pop_front();
+      void pop();
 
       // Add element to the end
-      void push_back(const T&);
+      void push(const T&);
 
       // Return if queue is empty
       bool empty() const;
