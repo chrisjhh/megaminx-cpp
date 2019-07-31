@@ -1,56 +1,202 @@
 #pragma once
+#include "FilePagedQueue_def.h"
 #include <queue>
 #include <thread>
 #include <string>
+#include <assert.h>
+#include <stdio.h>
+#include <filesystem>
+#include <fstream>
+namespace fs = std::experimental::filesystem;
 
 namespace Utils {
 
   template<class T>
-  class FilePagedQueue {
-    public:
-      // Constructor
-      FilePagedQueue(std::string directory, std::string prefix, size_t page_size);
+  FilePagedQueue<T>::FilePagedQueue(std::string directory, std::string prefix, size_t page_size)
+    : m_current_read(0),
+      m_last_write(0),
+      m_records_paged(0),
+      m_dir(directory),
+      m_prefix(prefix),
+      m_page_size(page_size)
+  {
+    assert(page_size > 0);
+    assert(!directory.empty());
+    assert(!prefix.empty());
+    if (!fs::is_directory(directory)) {
+      throw std::runtime_error("Invalid directory");
+    }
+    // Create an inital in-memory queue for the records
+    m_head = std::make_shared<std::queue<T>>();
+    // As there is initially only one queue, tail points to the same place
+    m_tail = m_head;
+  }
 
-      // Access the first element
-      T& front();
-      const T& front() const;
+  template<class T>
+  T& FilePagedQueue<T>::front()
+  {
+    return m_head->front();
+  }
 
-      // Access the last element
-      T& back();
-      const T& back() const;
+  template<class T>
+  const T& FilePagedQueue<T>::front() const
+  {
+    return m_head->front();
+  }
 
-      // Remove the first element
-      void pop_front();
+  template<class T>
+  T& FilePagedQueue<T>::back()
+  {
+    return m_tail->back();
+  }
 
-      // Add element to the end
-      void push_back(const T&);
+  template<class T>
+  const T& FilePagedQueue<T>::back() const
+  {
+    return m_tail->back();
+  }
 
-      // Return if queue is empty
-      bool empty() const;
+  // Remove the first element
+  template<class T>
+  void FilePagedQueue<T>::pop_front()
+  {
+    m_head->pop_front();
+    if (m_head->empty()) {
+      // We are finished with the file we were reading
+      if (m_current_read) {
+        std::string stale_page = page_file(m_current_read);
+        remove(stale_page.c_str());
+      }
+      // Finish off any reading operation in progress
+      if (m_reader.joinable()) {
+        m_reader.join();
+        assert(m_next);
+        m_records_paged -= m_next->size();
+      }
+      // Set the head to the next list if there is one
+      if (m_next) {
+        m_head = m_next;
+        // Kick thread off to load the next queue so hopefully it will
+        // be ready when we need it
+        if (m_current_read < m_last_write) {
+          ++m_current_read;
+          if (m_current_read == m_last_write) {
+            // If reading the last file to be written
+            // make sure it has actually finished!
+            if (m_writer.joinable()) {
+              m_writer.join();
+            }
+          }
+          m_next = std::make_shared<std::queue<T>>();
+          m_reader = std::thread(&FilePagedQueue::unpage,this,m_next);
+        } else if (m_head != m_tail) {
+          // We have caught our own tail
+          m_next = m_tail;
+        } else {
+          // Nowhere left to go
+          m_next = nullptr;
+        }
+      } 
+    }
+  }
 
-      // Return the number of elements in the queue
-      size_t size() const;
+  // Add element to the end
+  template<class T>
+  void FilePagedQueue<T>::push_back(const T& value)
+  {
+    m_tail->push_back(value);
+    if (m_tail.size() >= m_page_size) {
+      // Tail has reachd page size
+      // Case 1: If head and tail are the same split them into separate queues
+      if (m_tail == m_head) {
+        m_tail = std::make_shared<std::queue<T>>();
+        assert(!m_next);
+        m_next = m_tail;
+      } else if (m_tail == m_next) {
+        // Case 2: tail is the same as next. Split it again
+        m_tail = std::make_shared<std::queue<T>>();
+      } else {
+        // Case 3: Page it out
+        // Finish any existing write
+        if (m_writer.joinable()) {
+          m_writer.join();
+        }
+        ++m_last_write;
+        m_writer = std::thread(&FilePagedQueue::page,this,m_tail);
+        m_records_paged += m_tail->size();
+        // Start a new tail queue
+        m_tail = std::make_shared<std::queue<T>>();
+      }
+    }
+  }
 
-    protected:
-    private:
-      // Get the path to the pagefile to use
-      std::string page_file(int counter) const;
-      // Write the queue to disk
-      void page(std::shared_ptr<std::queue<T>> queue);
-      // Read the queue from disk
-      void unpage(std::shared_ptr<std::queue<T>> queue);
+  // Return if queue is empty
+  template<class T>
+  bool FilePagedQueue<T>::empty() const
+  {
+    return m_head->empty();
+  }
 
-      std::string m_dir;
-      std::string m_prefix;
-      size_t m_page_size;
-      std::shared_ptr<std::queue<T>> m_head;
-      std::shared_ptr<std::queue<T>> m_next;
-      std::shared_ptr<std::queue<T>> m_tail; 
-      size_t m_records_paged;
-      int m_current_read;
-      int m_last_write;
-      std::thread m_reader;
-      std::thread m_writer;
-  };
+
+  // Return the number of elements in the queue
+  template<class T>
+  size_t FilePagedQueue<T>::size() const
+  {
+    size_t count = m_head->size();
+    if (m_tail != m_head) {
+      count += m_tail->size();
+    }
+    if (m_next && m_next != m_tail && !m_reader.joinable())
+    {
+      assert(m_next != m_head);
+      // There is a next queue that is not the tail that is not currently being read
+      count += m_next->size();
+    }
+    count += m_records_paged;
+    return count;
+  }
+
+  // Get the path to the pagefile to use
+  template<class T>
+  std::string FilePagedQueue<T>::page_file(int counter) const
+  {
+    fs::path dir = m_dir;
+    fs::path file = m_prefix;
+    file += std::to_string(counter);
+    file += ".q";
+    fs::path full = dir / file;
+    return full;
+  }
+      
+  // Write the queue to disk
+  template<class T>
+  void FilePagedQueue<T>::page(std::shared_ptr<std::queue<T>> queue)
+  {
+    assert(!queue->empty());
+    assert(queue->size() == m_page_size);
+    std::string file = page_file(m_last_write);
+    std::ofstream out(file.c_str());
+    for (const T& item : *queue) {
+      out << item << std::endl;
+    }
+    out.close();
+  }
+
+  // Read the queue from disk
+  template<class T>
+  void FilePagedQueue<T>::unpage(std::shared_ptr<std::queue<T>> queue)
+  {
+    assert(queue->empty());
+    std::string file = page_file(m_current_read);
+    std::ifstream input(file.c_str());
+
+    T item;
+    while (input >> item)
+    {
+      queue->push_back(item);
+    }
+    input.close();
+    assert(queue->size() == m_page_size);
+  }
 
 }
