@@ -51,7 +51,7 @@ namespace Utils {
   {
     m_head->pop();
     if (m_head->empty()) {
-      // We are finished with the file we were reading
+      // If we are reading a file make sure we have finished
       if (m_reader.joinable()) {
         m_reader.join();
         assert(m_next);
@@ -104,6 +104,11 @@ namespace Utils {
         // Finish any existing write
         if (m_writer.joinable()) {
           m_writer.join();
+        }
+        if (m_last_write == m_current_read && m_last_write > 0) {
+          // Reset counters, but syncronise first just to be safe!
+          syncronize();
+          m_current_read = m_last_write = 0;
         }
         ++m_last_write;
         m_writer = std::thread(&FilePagedQueue::page,this,m_tail);

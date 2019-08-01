@@ -25,6 +25,11 @@ namespace fs = std::experimental::filesystem;
 #define TEMP \
   fs::temp_directory_path()
 
+#define REPEAT(times,code) \
+  for (int _i=0;_i<times;++_i) { \
+    code; \
+  }
+
 TEST(FilePagedQueueTest,constructor)
 {
   std::string dir = "t_FilePagedQueue_01";
@@ -76,6 +81,61 @@ TEST(FilePagedQueueTest,pop)
         }
       }
     }
+  }
+  RMDIR(dir);
+}
+
+TEST(FilePagedQueueTest,paging)
+{
+  std::string dir = "t_FilePagedQueue_04";
+  RMDIR(dir);
+  MKDIR(dir);
+  {
+    Utils::FilePagedQueue<int> q(dir,"queue",3);
+    // If we push 9 items the first page file should appear
+    REPEAT(9,q.push(0));
+    q.syncronize();
+    EXPECT_EXISTS("t_FilePagedQueue_04\\queue1.q");
+    // Read three and it should disappear again
+    REPEAT(3,q.pop());
+    q.syncronize();
+    EXPECT_NOT_EXISTS("t_FilePagedQueue_04\\queue1.q");
+    // Push three and it should come back
+    REPEAT(3,q.push(0));
+    q.syncronize();
+    EXPECT_EXISTS("t_FilePagedQueue_04\\queue1.q");
+    // Push another three and second page file should appear
+    REPEAT(3,q.push(0));
+    q.syncronize();
+    EXPECT_EXISTS("t_FilePagedQueue_04\\queue1.q");
+    EXPECT_EXISTS("t_FilePagedQueue_04\\queue2.q");
+    // Pop three and first page file should go but second remain
+    REPEAT(3,q.pop());
+    q.syncronize();
+    EXPECT_NOT_EXISTS("t_FilePagedQueue_04\\queue1.q");
+    EXPECT_EXISTS("t_FilePagedQueue_04\\queue2.q");
+    // Push another 3 now and third file should appear but still not first
+    REPEAT(3,q.push(0));
+    q.syncronize();
+    EXPECT_NOT_EXISTS("t_FilePagedQueue_04\\queue1.q");
+    EXPECT_EXISTS("t_FilePagedQueue_04\\queue2.q");
+    EXPECT_EXISTS("t_FilePagedQueue_04\\queue3.q");
+    // Pop three and only third file should be left
+    REPEAT(3,q.pop());
+    q.syncronize();
+    EXPECT_NOT_EXISTS("t_FilePagedQueue_04\\queue1.q");
+    EXPECT_NOT_EXISTS("t_FilePagedQueue_04\\queue2.q");
+    EXPECT_EXISTS("t_FilePagedQueue_04\\queue3.q");
+    // Pop another three and they should be all gone
+    REPEAT(3,q.pop());
+    q.syncronize();
+    EXPECT_NOT_EXISTS("t_FilePagedQueue_04\\queue1.q");
+    EXPECT_NOT_EXISTS("t_FilePagedQueue_04\\queue2.q");
+    EXPECT_NOT_EXISTS("t_FilePagedQueue_04\\queue3.q");
+    // Push three now and counter should reset to one
+    REPEAT(3,q.push(0));
+    q.syncronize();
+    EXPECT_EXISTS("t_FilePagedQueue_04\\queue1.q");
   }
   RMDIR(dir);
 }
