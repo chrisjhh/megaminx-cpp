@@ -45,18 +45,6 @@ namespace Utils {
     return m_head->front();
   }
 
-  template<class T>
-  T& FilePagedQueue<T>::back()
-  {
-    return m_tail->back();
-  }
-
-  template<class T>
-  const T& FilePagedQueue<T>::back() const
-  {
-    return m_tail->back();
-  }
-
   // Remove the first element
   template<class T>
   void FilePagedQueue<T>::pop()
@@ -123,8 +111,7 @@ namespace Utils {
           m_writer.join();
         }
         ++m_last_write;
-        m_keep_alive = m_tail;
-        m_writer = std::thread(&FilePagedQueue::page,this,m_keep_alive);
+        m_writer = std::thread(&FilePagedQueue::page,this,m_tail);
         m_records_paged += m_tail->size();
         //std::cout << "Records paged: " << m_records_paged << std::endl;
         // Start a new tail queue
@@ -210,15 +197,21 @@ namespace Utils {
   }
 
   template<class T>
-  FilePagedQueue<T>::~FilePagedQueue()
+  void FilePagedQueue<T>::syncronize()
   {
-    // Make sure threads finish
     if (m_writer.joinable()) {
       m_writer.join();
     }
     if (m_reader.joinable()) {
       m_reader.join();
     }
+  }
+
+  template<class T>
+  FilePagedQueue<T>::~FilePagedQueue()
+  {
+    // Make sure threads finish
+    syncronize();
   }
 
 }

@@ -15,10 +15,6 @@ namespace Utils {
       T& front();
       const T& front() const;
 
-      // Access the last element
-      T& back();
-      const T& back() const;
-
       // Remove the first element
       void pop();
 
@@ -30,6 +26,11 @@ namespace Utils {
 
       // Return the number of elements in the queue
       size_t size() const;
+
+      // Allow all threads to catch up
+      // Should not be needed for normal use
+      // But useful for testing
+      void syncronize();
 
       ~FilePagedQueue();
 
@@ -48,7 +49,6 @@ namespace Utils {
       std::shared_ptr<std::queue<T>> m_head;
       std::shared_ptr<std::queue<T>> m_next;
       std::shared_ptr<std::queue<T>> m_tail;
-      std::shared_ptr<std::queue<T>> m_keep_alive;
       size_t m_records_paged;
       int m_current_read;
       int m_last_write;
