@@ -36,6 +36,13 @@ namespace Utils {
       ~FilePagedQueue();
 
     protected:
+      size_t m_page_size;
+      size_t m_records_paged;
+      int m_current_read;
+      int m_last_write;
+      std::shared_ptr<std::queue<T>> m_head;
+      std::shared_ptr<std::queue<T>> m_next;
+      std::shared_ptr<std::queue<T>> m_tail;
     private:
       // Syncronise with reader
       void sync_reader();
@@ -55,13 +62,6 @@ namespace Utils {
 
       std::string m_dir;
       std::string m_prefix;
-      size_t m_page_size;
-      std::shared_ptr<std::queue<T>> m_head;
-      std::shared_ptr<std::queue<T>> m_next;
-      std::shared_ptr<std::queue<T>> m_tail;
-      size_t m_records_paged;
-      int m_current_read;
-      int m_last_write;
       std::thread m_reader;
       std::thread m_writer;
   };
