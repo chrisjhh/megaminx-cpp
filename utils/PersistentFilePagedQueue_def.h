@@ -4,7 +4,7 @@
 namespace Utils {
 
   template<class T>
-  class PersistentFilePagedQueue : public FilePagedQueue
+  class PersistentFilePagedQueue : public FilePagedQueue<T>
   {
     public:
       // Constructor

@@ -199,7 +199,7 @@ namespace Utils {
   // Deserialise a queue
   // Reads all items or only size items if it is set
   template<class T>
-  void FilePagedQueue<T>::read_from_stream(std::istream& is, std::queue<T>& queue, int size)
+  void FilePagedQueue<T>::read_from_stream(std::istream& is, std::queue<T>& queue, size_t size)
   {
     T item;
     int read = 0;
@@ -224,7 +224,7 @@ namespace Utils {
 
   // Read the queue from disk
   template<>
-  void FilePagedQueue<std::string>::read_from_stream(std::istream& is, std::queue<std::string>& queue, int size)
+  void FilePagedQueue<std::string>::read_from_stream(std::istream& is, std::queue<std::string>& queue, size_t size)
   {
     std::string item;
     int read = 0;

@@ -36,6 +36,14 @@ namespace Utils {
       ~FilePagedQueue();
 
     protected:
+      // Get the path to the pagefile to use
+      std::string page_file(int counter) const;
+      // Serialise a queue
+      void write_to_stream(std::ostream& os, std::queue<T>& queue);
+      // Deserialise a queue
+      // Reads all items or only size items if it is set
+      void read_from_stream(std::istream& is, std::queue<T>& queue, size_t size=0);
+
       size_t m_page_size;
       size_t m_records_paged;
       int m_current_read;
@@ -48,17 +56,10 @@ namespace Utils {
       void sync_reader();
       // Syncronise with writer
       void sync_writer();
-      // Get the path to the pagefile to use
-      std::string page_file(int counter) const;
       // Write the queue to disk
       void page(std::shared_ptr<std::queue<T>> queue);
       // Read the queue from disk
       void unpage(std::shared_ptr<std::queue<T>> queue);
-      // Serialise a queue
-      void write_to_stream(std::ostream& os, std::queue<T>& queue);
-      // Deserialise a queue
-      // Reads all items or only size items if it is set
-      void read_from_stream(std::istream& is, std::queue<T>& queue, int size=0);
 
       std::string m_dir;
       std::string m_prefix;

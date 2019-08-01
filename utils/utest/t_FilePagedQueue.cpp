@@ -158,7 +158,7 @@ TEST(FilePagedQueueTest,paging)
 TEST(FilePagedQueueTest,randomExercise)
 {
   // Simulate a typical use
-  srand (time(NULL));
+  srand ((unsigned int)time(NULL));
   std::string dir = "t_FilePagedQueue_05";
   MKDIR(dir);
   {

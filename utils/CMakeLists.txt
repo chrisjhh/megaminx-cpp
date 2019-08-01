@@ -18,3 +18,7 @@ add_test(DBCache_Tests t_DBCache)
 add_executable(t_FilePagedQueue utest/t_FilePagedQueue.cpp)
 target_link_libraries(t_FilePagedQueue gtest_main utils)
 add_test(FilePagedQueue_Tests t_FilePagedQueue)
+
+add_executable(t_PersistentFilePagedQueue utest/t_PersistentFilePagedQueue.cpp)
+target_link_libraries(t_PersistentFilePagedQueue gtest_main utils)
+add_test(PersistentFilePagedQueue_Tests t_PersistentFilePagedQueue)
