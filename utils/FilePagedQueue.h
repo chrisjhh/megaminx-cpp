@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 namespace fs = std::experimental::filesystem;
 
 namespace Utils {
@@ -52,11 +53,8 @@ namespace Utils {
     m_head->pop();
     if (m_head->empty()) {
       // If we are reading a file make sure we have finished
-      if (m_reader.joinable()) {
-        m_reader.join();
-        assert(m_next);
-        m_records_paged -= m_next->size();
-      }
+      sync_reader();
+      
       // Set the head to the next list if there is one
       if (m_next) {
         m_head = m_next;
@@ -67,9 +65,7 @@ namespace Utils {
           if (m_current_read == m_last_write) {
             // If reading the last file to be written
             // make sure it has actually finished!
-            if (m_writer.joinable()) {
-              m_writer.join();
-            }
+            sync_writer();
           }
           m_next = std::make_shared<std::queue<T>>();
           m_reader = std::thread(&FilePagedQueue::unpage,this,m_next);
@@ -102,9 +98,8 @@ namespace Utils {
       } else {
         // Case 3: Page it out
         // Finish any existing write
-        if (m_writer.joinable()) {
-          m_writer.join();
-        }
+        sync_writer();
+
         if (m_last_write == m_current_read && m_last_write > 0) {
           // Reset counters, but syncronise first just to be safe!
           syncronize();
@@ -150,10 +145,7 @@ namespace Utils {
   template<class T>
   std::string FilePagedQueue<T>::page_file(int counter) const
   {
-    //std::cout << "page_file(" << counter << ")" << std::endl;
-    //std::cout << "dir 1: " << m_dir << std::endl;
     fs::path dir = m_dir;
-    //std::cout << "dir 2: " << dir << std::endl;
     fs::path file = m_prefix;
     file += std::to_string(counter);
     file += ".q";
@@ -165,12 +157,9 @@ namespace Utils {
   template<class T>
   void FilePagedQueue<T>::page(std::shared_ptr<std::queue<T>> queue)
   {
-    //std::cout << "paging..." << std::endl;
-    //std::cout << "queue size: " << queue->size() << std::endl;
     assert(!queue->empty());
     assert(queue->size() == m_page_size);
     std::string file = page_file(m_last_write);
-    //std::cout << "Filename: " << file << std::endl;
     std::ofstream out(file.c_str());
     if (!out.good()) {
       std::string message("Error opening queue file to write: ");
@@ -206,15 +195,75 @@ namespace Utils {
     remove(file.c_str());
   }
 
+  //----- Specialisation for std::string
+  // Quote spaces and special characters so they can be safely serialised / deserialised
+  template<>
+  void FilePagedQueue<std::string>::page(std::shared_ptr<std::queue<std::string>> queue)
+  {
+    assert(!queue->empty());
+    assert(queue->size() == m_page_size);
+    std::string file = page_file(m_last_write);
+    std::ofstream out(file.c_str());
+    if (!out.good()) {
+      std::string message("Error opening queue file to write: ");
+      throw std::runtime_error(message + file);
+    }
+    while (!queue->empty()) {
+      out << std::quoted(queue->front()) << std::endl;
+      queue->pop();
+    }
+    out.close();
+  }
+
+  // Read the queue from disk
+  template<>
+  void FilePagedQueue<std::string>::unpage(std::shared_ptr<std::queue<std::string>> queue)
+  {
+    assert(queue->empty());
+    std::string file = page_file(m_current_read);
+    std::ifstream input(file.c_str());
+    if (!input.good()) {
+      std::string message("Error opening queue file to read: ");
+      throw std::runtime_error(message + file);
+    }
+
+    std::string item;
+    while (input >> std::quoted(item))
+    {
+      queue->push(item);
+    }
+    input.close();
+    assert(queue->size() == m_page_size);
+    // Page file no longer needed
+    remove(file.c_str());
+  }
+  //------
+
+  // Syncronise with reader
   template<class T>
-  void FilePagedQueue<T>::syncronize()
+  void FilePagedQueue<T>::sync_reader()
+  {
+    if (m_reader.joinable()) {
+      m_reader.join();
+      assert(m_next);
+      m_records_paged -= m_next->size();
+    }
+  }
+
+  // Syncronise with writer
+  template<class T>
+  void FilePagedQueue<T>::sync_writer()
   {
     if (m_writer.joinable()) {
       m_writer.join();
     }
-    if (m_reader.joinable()) {
-      m_reader.join();
-    }
+  }
+
+  template<class T>
+  void FilePagedQueue<T>::syncronize()
+  {
+    sync_writer();
+    sync_reader();
   }
 
   template<class T>

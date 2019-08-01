@@ -4,6 +4,8 @@
 #include <sys/stat.h>
 #include <stdio.h>
 #include <filesystem>
+#include <stdlib.h>
+#include <time.h>
 namespace fs = std::experimental::filesystem;
 
 
@@ -29,6 +31,19 @@ namespace fs = std::experimental::filesystem;
   for (int _i=0;_i<times;++_i) { \
     code; \
   }
+
+std::string random_string(int len) 
+{ 
+  std::string result;
+  result.reserve(len);
+  for (int i=0;i<len;++i) {
+    // Generate char from 32 (space) to 126 (~)
+    int r = rand() % 95;
+    char c = 32 + r;
+    result += c;
+  }
+  return result;
+}
 
 TEST(FilePagedQueueTest,constructor)
 {
@@ -136,6 +151,31 @@ TEST(FilePagedQueueTest,paging)
     REPEAT(3,q.push(0));
     q.syncronize();
     EXPECT_EXISTS("t_FilePagedQueue_04\\queue1.q");
+  }
+  RMDIR(dir);
+}
+
+TEST(FilePagedQueueTest,randomExercise)
+{
+  // Simulate a typical use
+  srand (time(NULL));
+  std::string dir = "t_FilePagedQueue_05";
+  MKDIR(dir);
+  {
+    Utils::FilePagedQueue<std::string> q(dir,"queue",3);
+    std::queue<std::string> reference;
+    for (int i=0;i<1000;++i) {
+      if (q.empty() || (rand() % 3) > 0) {
+        std::string next_item = random_string(5 + (rand() % 10));
+        q.push(next_item);
+        reference.push(next_item);
+      } else {
+        ASSERT_EQ(q.front(),reference.front());
+        ASSERT_EQ(q.size(),reference.size());
+        q.pop();
+        reference.pop();
+      }
+    }
   }
   RMDIR(dir);
 }

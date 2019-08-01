@@ -36,6 +36,10 @@ namespace Utils {
 
     protected:
     private:
+      // Syncronise with reader
+      void sync_reader();
+      // Syncronise with writer
+      void sync_writer();
       // Get the path to the pagefile to use
       std::string page_file(int counter) const;
       // Write the queue to disk
