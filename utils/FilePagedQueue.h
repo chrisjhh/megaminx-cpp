@@ -52,11 +52,6 @@ namespace Utils {
     m_head->pop();
     if (m_head->empty()) {
       // We are finished with the file we were reading
-      if (m_current_read) {
-        std::string stale_page = page_file(m_current_read);
-        remove(stale_page.c_str());
-      }
-      // Finish off any reading operation in progress
       if (m_reader.joinable()) {
         m_reader.join();
         assert(m_next);
@@ -172,6 +167,9 @@ namespace Utils {
     std::string file = page_file(m_last_write);
     //std::cout << "Filename: " << file << std::endl;
     std::ofstream out(file.c_str());
+    if (!out.good()) {
+      throw std::runtime_error("Error opening queue file to write");
+    }
     while (!queue->empty()) {
       out << queue->front() << std::endl;
       queue->pop();
@@ -186,6 +184,9 @@ namespace Utils {
     assert(queue->empty());
     std::string file = page_file(m_current_read);
     std::ifstream input(file.c_str());
+    if (!input.good()) {
+      throw std::runtime_error("Error opening queue file to read");
+    }
 
     T item;
     while (input >> item)
@@ -194,6 +195,8 @@ namespace Utils {
     }
     input.close();
     assert(queue->size() == m_page_size);
+    // Page file no longer needed
+    remove(file.c_str());
   }
 
   template<class T>

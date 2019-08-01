@@ -27,7 +27,7 @@ namespace fs = std::experimental::filesystem;
 
 TEST(FilePagedQueueTest,constructor)
 {
-  std::string dir = "t_FilePagedCache_01";
+  std::string dir = "t_FilePagedQueue_01";
   MKDIR(dir);
   {
     Utils::FilePagedQueue<int> q(dir,"queue",3);
@@ -39,7 +39,7 @@ TEST(FilePagedQueueTest,constructor)
 
 TEST(FilePagedQueueTest,push)
 {
-  std::string dir = "t_FilePagedCache_02";
+  std::string dir = "t_FilePagedQueue_02";
   MKDIR(dir);
   {
     Utils::FilePagedQueue<int> q(dir,"queue",3);
@@ -47,6 +47,34 @@ TEST(FilePagedQueueTest,push)
       q.push(i);
       EXPECT_EQ(q.size(), i);
       EXPECT_TRUE(!q.empty());
+    }
+  }
+  RMDIR(dir);
+}
+
+TEST(FilePagedQueueTest,pop)
+{
+  std::string dir = "t_FilePagedQueue_03";
+  MKDIR(dir);
+  {
+    Utils::FilePagedQueue<int> q(dir,"queue",3);
+    for(int n=1;n<=28;n+=3) {
+      for(int i=1;i<=n;++i) {
+        q.push(i);
+        EXPECT_EQ(q.size(), i);
+        EXPECT_TRUE(!q.empty());
+      }
+      int expected = 1;
+      for(int i=n;i>0;--i) {
+        EXPECT_EQ(q.size(), i);
+        EXPECT_EQ(q.front(), expected++);
+        q.pop();
+        if (i > 1) {
+          EXPECT_TRUE(!q.empty());
+        } else {
+          EXPECT_TRUE(q.empty());
+        }
+      }
     }
   }
   RMDIR(dir);
