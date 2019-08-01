@@ -168,7 +168,8 @@ namespace Utils {
     //std::cout << "Filename: " << file << std::endl;
     std::ofstream out(file.c_str());
     if (!out.good()) {
-      throw std::runtime_error("Error opening queue file to write");
+      std::string message("Error opening queue file to write: ");
+      throw std::runtime_error(message + file);
     }
     while (!queue->empty()) {
       out << queue->front() << std::endl;
@@ -185,7 +186,8 @@ namespace Utils {
     std::string file = page_file(m_current_read);
     std::ifstream input(file.c_str());
     if (!input.good()) {
-      throw std::runtime_error("Error opening queue file to read");
+      std::string message("Error opening queue file to read: ");
+      throw std::runtime_error(message + file);
     }
 
     T item;
