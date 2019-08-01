@@ -165,10 +165,7 @@ namespace Utils {
       std::string message("Error opening queue file to write: ");
       throw std::runtime_error(message + file);
     }
-    while (!queue->empty()) {
-      out << queue->front() << std::endl;
-      queue->pop();
-    }
+    write_to_stream(out,*queue);
     out.close();
   }
 
@@ -183,59 +180,61 @@ namespace Utils {
       std::string message("Error opening queue file to read: ");
       throw std::runtime_error(message + file);
     }
-
-    T item;
-    while (input >> item)
-    {
-      queue->push(item);
-    }
+    read_from_stream(input,*queue);
     input.close();
     assert(queue->size() == m_page_size);
     // Page file no longer needed
     remove(file.c_str());
+  }
+
+  // Serialise a queue
+  template<class T>
+  void FilePagedQueue<T>::write_to_stream(std::ostream& os, std::queue<T>& queue) {
+    while (!queue.empty()) {
+      os << queue.front() << std::endl;
+      queue.pop();
+    }
+  }
+
+  // Deserialise a queue
+  // Reads all items or only size items if it is set
+  template<class T>
+  void FilePagedQueue<T>::read_from_stream(std::istream& is, std::queue<T>& queue, int size)
+  {
+    T item;
+    int read = 0;
+    while (is >> item)
+    {
+      queue.push(item);
+      if (++read == size) {
+        break;
+      }
+    }
   }
 
   //----- Specialisation for std::string
   // Quote spaces and special characters so they can be safely serialised / deserialised
   template<>
-  void FilePagedQueue<std::string>::page(std::shared_ptr<std::queue<std::string>> queue)
-  {
-    assert(!queue->empty());
-    assert(queue->size() == m_page_size);
-    std::string file = page_file(m_last_write);
-    std::ofstream out(file.c_str());
-    if (!out.good()) {
-      std::string message("Error opening queue file to write: ");
-      throw std::runtime_error(message + file);
+  void FilePagedQueue<std::string>::write_to_stream(std::ostream& os, std::queue<std::string>& queue) {
+    while (!queue.empty()) {
+      os << std::quoted(queue.front()) << std::endl;
+      queue.pop();
     }
-    while (!queue->empty()) {
-      out << std::quoted(queue->front()) << std::endl;
-      queue->pop();
-    }
-    out.close();
   }
 
   // Read the queue from disk
   template<>
-  void FilePagedQueue<std::string>::unpage(std::shared_ptr<std::queue<std::string>> queue)
+  void FilePagedQueue<std::string>::read_from_stream(std::istream& is, std::queue<std::string>& queue, int size)
   {
-    assert(queue->empty());
-    std::string file = page_file(m_current_read);
-    std::ifstream input(file.c_str());
-    if (!input.good()) {
-      std::string message("Error opening queue file to read: ");
-      throw std::runtime_error(message + file);
-    }
-
     std::string item;
-    while (input >> std::quoted(item))
+    int read = 0;
+    while (is >> std::quoted(item))
     {
-      queue->push(item);
+      queue.push(item);
+      if (++read == size) {
+        break;
+      }
     }
-    input.close();
-    assert(queue->size() == m_page_size);
-    // Page file no longer needed
-    remove(file.c_str());
   }
   //------
 

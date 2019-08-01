@@ -2,6 +2,7 @@
 #include <queue>
 #include <thread>
 #include <string>
+#include <iosfwd>
 
 namespace Utils {
 
@@ -46,6 +47,11 @@ namespace Utils {
       void page(std::shared_ptr<std::queue<T>> queue);
       // Read the queue from disk
       void unpage(std::shared_ptr<std::queue<T>> queue);
+      // Serialise a queue
+      void write_to_stream(std::ostream& os, std::queue<T>& queue);
+      // Deserialise a queue
+      // Reads all items or only size items if it is set
+      void read_from_stream(std::istream& is, std::queue<T>& queue, int size=0);
 
       std::string m_dir;
       std::string m_prefix;
